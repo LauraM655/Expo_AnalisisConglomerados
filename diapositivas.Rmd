@@ -1,6 +1,5 @@
 ---
 title: "Untitled"
-author: "Laura Martinez"
 date: "`r Sys.Date()`"
 output: html_document
 ---
