@@ -28,3 +28,374 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Guía de Estudio y Enseñanza de Análisis Estadístico Multivariado: ACP, Análisis Factorial, Correspondencias y Conglomerados
+
+Este documento constituye un manual exhaustivo de estudio y referencia pedagógica para el análisis estadístico multivariado. Adopta de manera rigurosa la notación y el enfoque geométrico-algebraico del profesor Luis Guillermo Díaz Monroy (Universidad Nacional de Colombia), complementado con las contribuciones de la Escuela Francesa de Análisis de Datos (Lebart, Escofier, Pagès) y los textos fundamentales de la literatura multivariada presentes en las fuentes.
+
+1. Marco Unificado y Geometría Dual de los Métodos Factoriales (Base ACP)
+
+El Análisis en Componentes Principales (ACP) constituye el núcleo geométrico y matricial sobre el cual se edifican los demás métodos de estructuración multivariada. Comprender la dualidad de espacios en ACP es condición necesaria para dominar el Análisis de Correspondencias y los métodos de clasificación.
+
+1.1. Notación Matricial Fundamental
+
+Sea Y la matriz de datos de dimensión n \times p, donde n representa el número de individuos (filas) y p el número de variables cuantitativas continuas (columnas).
+
+* Vector de Medias (\bar{Y}): \bar{Y} = \frac{1}{n} Y' \mathbf{1}_n = \begin{bmatrix} \bar{y}_1 & \bar{y}_2 & \cdots & \bar{y}_p \end{bmatrix}'
+* Matriz Centrada (Y_c): Y_c = \left(I_n - \frac{1}{n} \mathbf{1}_n \mathbf{1}_n'\right) Y = C_n Y donde C_n = I_n - \frac{1}{n} \mathbf{1}_n \mathbf{1}_n' es el operador de centrado, simétrico e idempotente (C_n^2 = C_n).
+* Matriz Estandarizada (X): X = Y_c D_{\sigma}^{-1} donde D_{\sigma} = \text{diag}(\sigma_1, \sigma_2, \dots, \sigma_p) contiene las desviaciones estándar muestrales.
+* Matriz de Covarianzas Muestral (S) y de Correlaciones (R): S = \frac{1}{n} Y_c' Y_c, \quad R = \frac{1}{n} X' X = D_{\sigma}^{-1} S D_{\sigma}^{-1}
+
+1.2. El Esquema Generalizado ACP(X, M, N)
+
+En el enfoque de la Escuela Francesa y Díaz Monroy, cualquier análisis factorial es una tripleta ACP(X, M, N), definida por:
+
+1. Una matriz de datos X (n \times p).
+2. Una matriz de métrica M (p \times p), simétrica y definida positiva en el espacio de las filas \mathbb{R}^p.
+3. Una matriz de pesos de los individuos N (n \times n), diagonal y positiva en el espacio de las columnas \mathbb{R}^n.
+
+* En el ACP normado clásico: X es la matriz estandarizada, M = I_p y N = \frac{1}{n} I_n.
+
+1.3. Dualidad entre \mathbb{R}^p y \mathbb{R}^n
+
+Nube de Puntos Filas en \mathbb{R}^p
+
+Cada individuo i es un punto x_i' \in \mathbb{R}^p con peso p_i = 1/n.
+
+* Centro de gravedad: g_p = \sum_{i=1}^n p_i x_i = \mathbf{0}.
+* Inercia total de la nube de individuos: \text{Inercia}(N_n) = \sum_{i=1}^n p_i \|x_i\|_M^2 = \text{traza}(X' N X M) = \text{traza}(R) = p
+* Búsqueda del primer eje factorial: Se busca un vector unitario u_1 \in \mathbb{R}^p (u_1' M u_1 = 1) que maximice la inercia de la nube proyectada: \max_{u_1} u_1' X' N X M u_1 \quad \text{sujeto a} \quad u_1' M u_1 = 1 El multiplicador de Lagrange conduce al problema de valores y vectores propios: X' N X M u_s = \lambda_s u_s Las coordenadas factoriales de las filas sobre el eje s corresponden a la variable componente principal F_s: F_s = X M u_s, \quad \text{con varianza } \frac{1}{n} F_s' F_s = \lambda_s
+
+Nube de Puntos Columnas en \mathbb{R}^n
+
+Cada variable j es un vector X_j \in \mathbb{R}^n.
+
+* Matriz de Inercia en \mathbb{R}^n: W = X M X' N.
+* Ecuación de valores y vectores propios: X M X' N v_s = \lambda_s v_s donde v_s es el vector propio N-unitario (v_s' N v_s = 1).
+* Coordenadas factoriales de las variables (G_s): G_s = X' N v_s = \sqrt{\lambda_s} M u_s En el ACP normado (M = I_p), G_s(j) = \text{cor}(X_j, F_s) = \sqrt{\lambda_s} u_s(j).
+
+Fórmulas de Transición y Diagrama de Dualidad
+
+Las relaciones de transición conectan ambos espacios: F_s = \frac{1}{\sqrt{\lambda_s}} X M G_s, \quad G_s = \frac{1}{\sqrt{\lambda_s}} X' N F_s
+
+* Círculo de Correlaciones: Es la proyección de la hiperesfera unitaria de \mathbb{R}^n sobre el plano factorial de variables. El coseno del ángulo entre dos vectores variable X_j y X_k es exactamente la correlación r_{jk} = \cos(\theta_{jk}).
+* Calidad de Representación (\cos^2) y Contribución Absoluta (CTR): \cos^2_s(i) = \frac{F_s^2(i)}{d^2(i, g)}, \quad \text{CTR}_s(i) = \frac{p_i F_s^2(i)}{\lambda_s}
+
+2. Análisis Factorial de Factores Comunes y Únicos (AF)
+
+A diferencia del ACP, que es una transformación ortogonal descriptiva de reducción de datos sin supuesto estocástico de modelo, el Análisis Factorial (AF) postula un modelo estructurado en el cual las variables observadas son manifestación de variables latentes no observables (factores comunes) más un término de error aleatorio específico (factor único).
+
+2.1. El Modelo Factorial Ortogonal
+
+Sea X = \begin{bmatrix} X_1 & X_2 & \dots & X_p \end{bmatrix}' un vector aleatorio p-dimensional con media \mu. El modelo lineal k-factorial (k < p) establece:
+
+X_i - \mu_i = \lambda_{i1} f_1 + \lambda_{i2} f_2 + \dots + \lambda_{ik} f_k + U_i, \quad i = 1, 2, \dots, p
+
+En forma matricial: X - \mu = \Lambda f + U
+
+donde:
+
+* \Lambda es la matriz de cargas o pesos factoriales (factor loadings) de dimensión p \times k.
+* f = \begin{bmatrix} f_1 & f_2 & \dots & f_k \end{bmatrix}' es el vector de k factores comunes.
+* U = \begin{bmatrix} U_1 & U_2 & \dots & U_p \end{bmatrix}' es el vector de p factores únicos o específicos.
+
+Supuestos Estructurales del Modelo
+
+1. E(f) = \mathbf{0}, \quad \text{Cov}(f) = E(f f') = I_k \quad (\text{factores comunes ortogonales e estandarizados}).
+2. E(U) = \mathbf{0}, \quad \text{Cov}(U) = E(U U') = \Psi = \text{diag}(\psi_{11}, \psi_{22}, \dots, \psi_{pp}) \quad (\text{errores incorrelacionados entre sí}).
+3. \text{Cov}(f, U) = E(f U') = \mathbf{0}_{k \times p} \quad (\text{factores comunes y específicos independientes}).
+
+2.2. Descomposición de la Varianza y Covarianza
+
+Descomposición de la Varianza de una Variable (X_i)
+
+\text{Var}(X_i) = \sigma_{ii} = \sum_{j=1}^k \lambda_{ij}^2 + \psi_{ii} = h_i^2 + \psi_{ii}
+
+* Comunalidad (h_i^2): Variabilidad de la variable X_i explicada conjuntamente por los k factores comunes: h_i^2 = \lambda_{i1}^2 + \lambda_{i2}^2 + \dots + \lambda_{ik}^2
+* Especificidad o Unicidad (\psi_{ii}): Variabilidad exclusiva de X_i, no compartida con ninguna otra variable del estudio.
+
+Descomposición de la Matriz de Covarianzas (\Sigma)
+
+\Sigma = \text{Cov}(X) = E[(X - \mu)(X - \mu)'] = E[(\Lambda f + U)(\Lambda f + U)'] = \Lambda E(f f') \Lambda' + E(U U') \Sigma = \Lambda \Lambda' + \Psi
+
+Si las variables están estandarizadas, \Sigma = R (matriz de correlaciones): R = \Lambda \Lambda' + \Psi \implies R^* = R - \Psi = \Lambda \Lambda' donde R^* es la matriz de correlaciones reducida, cuyos elementos diagonales son las comunalidades h_i^2.
+
+2.3. No Unicidad de las Cargas y Rotación Factorial
+
+Si T es una matriz ortogonal k \times k (T T' = T' T = I_k), podemos definir nuevos factores f^* = T' f y una nueva matriz de cargas \Lambda^* = \Lambda T. El modelo transformado es: X - \mu = \Lambda T T' f + U = \Lambda^* f^* + U La matriz de covarianzas reproducida no se altera: \Lambda^* \Lambda^{*'} + \Psi = (\Lambda T)(\Lambda T)' + \Psi = \Lambda T T' \Lambda' + \Psi = \Lambda \Lambda' + \Psi = \Sigma
+
+Esto demuestra que existe una infinidad de matrices de cargas factoriales matemáticamente equivalentes. Para lograr la estructura simple de Thurstone (donde cada variable carga fuertemente en un solo factor y cerca de cero en los demás), se aplican rotaciones:
+
+1. Rotación Varimax (Ortogonal): Maximiza la varianza de los cuadrados de las cargas dentro de cada columna de \Lambda: \max_\Gamma \sum_{j=1}^k \left[ \sum_{i=1}^p \lambda_{ij}^4 - \frac{1}{p} \left(\sum_{i=1}^p \lambda_{ij}^2\right)^2 \right]
+2. Rotación Quartimax (Ortogonal): Maximiza la varianza de los cuadrados de las cargas en el sentido de las filas (simplifica las variables).
+3. Rotaciones Oblicuas (Promax, Oblimin): Relajan el supuesto \text{Cov}(f) = I_k, permitiendo correlación entre factores (\text{Cov}(f) = \Phi \neq I). Se distingue entre la Matriz de Configuración (coeficientes de regresión lineal) y la Matriz de Estructura (correlaciones entre variables y factores).
+
+2.4. Métodos de Estimación
+
+* Método de la Componente Principal: Trunca la descomposición espectral de S o R tomando los k mayores autovalores. Ignora inicialmente \Psi.
+* Método del Factor Principal: Reemplaza la diagonal de R por estimaciones a priori de h_i^2 (usualmente R_i^2, el coeficiente de determinación múltiple de X_i sobre las demás variables) y diagonaliza la matriz reducida R^* = R - \hat{\Psi}.
+* Máxima Verosimilitud: Asume multinormalidad X \sim N_p(\mu, \Sigma) y maximiza la función de log-verosimilitud para resolver \hat{\Lambda} y \hat{\Psi}. Ofrece una prueba de hipótesis \chi^2 para evaluar la suficiencia de k factores.
+
+2.5. Cuadro Comparativo Riguroso: ACP vs. AF
+
+Criterio	Análisis en Componentes Principales (ACP)	Análisis Factorial (AF)
+Naturaleza	Transformación lineal matemática determinante de datos.	Modelo estadístico estocástico con error no observable.
+Objetivo	Maximizar la varianza explicada total (\text{traza}(S) o p).	Explicar las covarianzas/correlaciones inter-variables.
+Varianza Trata	Varianza Total (Común + Única + Error).	Únicamente Varianza Común (Comunalidad h_i^2).
+Solución	Única e invariable (vectores propios de S o R).	Indeterminada (infinitas soluciones por rotaciones ortogonales/oblicuas).
+Invariancia a Escala	No sensible si se usa R; sensible si se compara S vs R.	Invariante bajo transformaciones diagonales de escala.
+
+3. Análisis de Correspondencias Simples (ACS) y Múltiples (ACM)
+
+El Análisis de Correspondencias adapta la filosofía del ACP al estudio de variables categóricas o cualitativas, sustituyendo la métrica euclidiana ordinaria por la métrica Chi-cuadrado (\chi^2).
+
+3.1. Análisis de Correspondencias Simples (ACS)
+
+Tabla de Contingencia y Perfiles
+
+Sea N una tabla de contingencia de orden n \times p, proveniente del cruce de dos variables cualitativas con n y p categorías.
+
+* Matriz de frecuencias relativas: F = \frac{1}{n_T} N, donde n_T = \sum_{i} \sum_{j} n_{ij}.
+* Marginales de fila y columna: f_{i\cdot} = \sum_{j} f_{ij}, f_{\cdot j} = \sum_{i} f_{ij}.
+* Matrices diagonales de masas: D_n = \text{diag}(f_{i\cdot}), D_p = \text{diag}(f_{\cdot j}).
+* Perfil Fila i: Vector x_i' = \begin{bmatrix} \frac{f_{i1}}{f_{i\cdot}} & \frac{f_{i2}}{f_{i\cdot}} & \dots & \frac{f_{ip}}{f_{i\cdot}} \end{bmatrix}. Matriz de perfiles fila: D_n^{-1} F.
+* Perfil Columna j: Vector y_j = \begin{bmatrix} \frac{f_{1j}}{f_{\cdot j}} & \frac{f_{2j}}{f_{\cdot j}} & \dots & \frac{f_{nj}}{f_{\cdot j}} \end{bmatrix}'. Matriz de perfiles columna: F D_p^{-1}.
+
+Métrica Chi-Cuadrado (\chi^2) e Inercia Total
+
+La distancia entre dos perfiles fila i e i' pondera las diferencias inversamente por la masa de la columna: d_{\chi^2}^2(i, i') = \|x_i - x_{i'}\|_{D_p^{-1}}^2 = \sum_{j=1}^p \frac{1}{f_{\cdot j}} \left( \frac{f_{ij}}{f_{i\cdot}} - \frac{f_{i'j}}{f_{i'\cdot}} \right)^2
+
+* Centro de gravedad de los perfiles fila: g_p = \begin{bmatrix} f_{\cdot 1} & f_{\cdot 2} & \dots & f_{\cdot p} \end{bmatrix}'.
+* Inercia Total de la Nube: \text{Inercia}(N_n) = \sum_{i=1}^n f_{i\cdot} d_{\chi^2}^2(i, g_p) = \sum_{i=1}^n \sum_{j=1}^p \frac{(f_{ij} - f_{i\cdot} f_{\cdot j})^2}{f_{i\cdot} f_{\cdot j}} = \phi^2 = \frac{\chi^2_{independencia}}{n_T}
+
+ACS como un ACP(X, M, N) y Relaciones Cuasibaricéntricas
+
+El ACS equivale al análisis triplete ACP(X, M, N) con: X = D_n^{-1} F D_p^{-1} - \mathbf{1}_n \mathbf{1}_p', \quad M = D_p, \quad N = D_n
+
+Las coordenadas factoriales de las filas (F_s) y columnas (G_s) satisfacen las relaciones cuasibaricéntricas de transición: F_s(i) = \frac{1}{\sqrt{\lambda_s}} \sum_{j=1}^p \frac{f_{ij}}{f_{i\cdot}} G_s(j), \quad G_s(j) = \frac{1}{\sqrt{\lambda_s}} \sum_{i=1}^n \frac{f_{ij}}{f_{\cdot j}} F_s(i)
+
+Esta propiedad permite la representación simultánea en planos factoriales: cada categoría fila se ubica en el centro de gravedad de las categorías columna (dilatado por 1/\sqrt{\lambda_s}).
+
+Propiedad de Equivalencia Distribucional
+
+Si dos filas (o columnas) con perfiles idénticos se fusionan en una sola categoría cuya masa sea la suma de sus masas, las distancias \chi^2 entre las demás categorías y las coordenadas factoriales del análisis se mantienen estrictamente inalteradas.
+
+3.2. Análisis de Correspondencias Múltiples (ACM)
+
+El ACM extiende el ACS a un conjunto de s variables cualitativas observadas sobre n individuos.
+
+Tabla Disyuntiva Completa (Z) y Tabla de Burt (B)
+
+* Tabla Disyuntiva Completa (Z): Matriz binaria de dimensión n \times p (donde p = \sum_{q=1}^s p_q es el número total de categorías). Para cada variable q, la fila i tiene un 1 en la categoría que posee el individuo y 0 en las demás.
+* Tabla de Burt (B): Matriz simétrica de bloques de contingencia p \times p: B = Z' Z
+
+Inercia y Ajuste de Benzécri
+
+El ACM se define como el ACS(Z). La inercia total del ACM sobre la tabla disyuntiva es: \text{Inercia Total} = \frac{p}{s} - 1
+
+Dado que el número de categorías p suele ser grande, la inercia explicada por los primeros ejes aparece artificialmente baja. Por ello, Benzécri propuso reevaluar los autovalores \lambda_s > 1/s: \tau(\lambda_s) = \left( \frac{s}{s - 1} \right)^2 \left( \lambda_s - \frac{1}{s} \right)^2
+
+Razones de Correlación (\eta^2)
+
+En ACM, la contribución de una variable cualitativa q al eje factorial s se mide mediante la razón de correlación: \eta^2(q, F_s) = \frac{\text{Varianza Entre categorías de } q}{\text{Varianza Total de } F_s} = \frac{1}{\lambda_s} \sum_{j \in J_q} \frac{n_j}{n} G_s^2(j) donde J_q es el conjunto de categorías de la variable q.
+
+4. Análisis de Conglomerados (Cluster Analysis) y Métodos de Agrupamiento
+
+El Análisis de Conglomerados busca identificar una partición P_K = \{C_1, C_2, \dots, C_K\} de los n objetos en K grupos homogéneos (máxima similitud intraclase) y bien separados (máxima disimilitud interclase).
+
+4.1. Teorema de Descomposición de la Inercia (Huygens)
+
+Dada una nube de n puntos en \mathbb{R}^p con masas p_i (\sum p_i = 1), centro de gravedad global g, y una partición en K clases C_1, \dots, C_K con centros de gravedad g_k y masas p_k = \sum_{i \in C_k} p_i:
+
+\text{Inercia Total } (I_T) = \sum_{i=1}^n p_i d^2(x_i, g) = I_W + I_B
+
+1. Inercia Intraclases (I_W - Heterogeneidad interna): I_W = \sum_{k=1}^K \left( \sum_{i \in C_k} p_i d^2(x_i, g_k) \right) = \sum_{k=1}^K I(C_k)
+2. Inercia Entre Clases (I_B - Separación externa): I_B = \sum_{k=1}^K p_k d^2(g_k, g)
+
+Criterio Fundamental de Agrupamiento: Un buen agrupamiento minimiza I_W o, equivalentemente, maximiza I_B.
+
+4.2. Métodos Jerárquicos Aglomerativos
+
+Construyen una jerarquía de particiones anidadas desde n clases unitarias hasta 1 clase global.
+
+Criterios de Agregación entre Grupos
+
+Sean dos grupos A y B con tamaños n_A, n_B y centros de gravedad g_A, g_B:
+
+1. Enlace Simple (Vecino más cercano): d(A, B) = \min_{i \in A, l \in B} d(i, l) Propiedad: Tiende a producir efecto de encadenamiento (chaining).
+2. Enlace Completo (Vecino más lejano): d(A, B) = \max_{i \in A, l \in B} d(i, l) Propiedad: Forma conglomerados compactos y de diámetros similares.
+3. Enlace Promedio (UPGMA): d(A, B) = \frac{1}{n_A n_B} \sum_{i \in A} \sum_{l \in B} d(i, l)
+4. Método de Ward (Mínima Varianza): El criterio de aglomeración une aquellos dos grupos A y B cuya fusión minimice el incremento de la inercia intraclase (\Delta I_W).
+
+Deducción de la Distancia de Ward (W(A, B)): La inercia intraclase de la unión A \cup B es: I(A \cup B) = I(A) + I(B) + W(A, B) El incremento de inercia al fusionar A y B corresponde a la inercia entre los centros g_A y g_B con respecto a su centroide combinado g_{AB} = \frac{p_A g_A + p_B g_B}{p_A + p_B}: W(A, B) = p_A \|g_A - g_{AB}\|^2 + p_B \|g_B - g_{AB}\|^2 Sustituyendo g_{AB}: W(A, B) = \frac{p_A p_B}{p_A + p_B} d^2(g_A, g_B) Para pesos iguales p_i = 1/n: W(A, B) = \frac{n_A n_B}{n (n_A + n_B)} \|g_A - g_B\|^2
+
+Fórmula de Recurrencia de Lance y Williams
+
+Permite calcular la distancia entre un nuevo grupo AB (fruto de la fusión de A y B) y cualquier otro grupo C sin acudir a los datos originales: d(AB, C) = \alpha_A d(A, C) + \alpha_B d(B, C) + \beta d(A, B) + \gamma |d(A, C) - d(B, C)|
+
+* Para Ward: \alpha_A = \frac{n_A + n_C}{n_A + n_B + n_C}, \alpha_B = \frac{n_B + n_C}{n_A + n_B + n_C}, \beta = \frac{-n_C}{n_A + n_B + n_C}, \gamma = 0.
+
+4.3. Desigualdad Ultramétrica y Matriz Cofenética
+
+Cualquier árbol jerárquico (dendrograma) induce sobre el conjunto de objetos una distancia ultramétrica \delta(i, l), definida como la altura del nodo más bajo en el que se fusionan i y l.
+
+Propiedad de la Desigualdad Ultramétrica
+
+Para todo trío de elementos a, b, c: \delta(a, b) \le \max \{\delta(a, c), \delta(b, c)\}
+
+Geométricamente, todo triángulo formado por una métrica ultramétrica es isósceles con la base menor o equilátero.
+
+* Coeficiente de Correlación Cofenético: Correlación de Pearson entre las distancias originales d(i, l) y las distancias ultramétricas del árbol \delta(i, l). Evalúa la fidelidad del dendrograma respecto a las distancias reales.
+
+4.4. Métodos de Partición: K-Medias (K-Means)
+
+Dado K predefinido, el algoritmo de K-medias busca optimizar la función de costo intraclase: V(P_K) = \sum_{k=1}^K \sum_{i \in C_k} \|x_i - g_k\|^2
+
+Algoritmo Iterativo Reubicativo
+
+1. Inicialización: Seleccionar K centros iniciales {g_1^(0), g_2^(0), ..., g_K^(0)}.
+2. Etapa de Asignación: Reasignar cada objeto i a la clase k cuyo centro g_k sea más cercano:
+   C_k^(m) = { i : ||x_i - g_k^(m-1)|| <= ||x_i - g_l^(m-1)||, ∀ l ≠ k }
+3. Etapa de Actualización: Recalcular los centroides como el promedio de cada grupo:
+   g_k^(m) = (1 / n_k) * ∑_{i ∈ C_k^(m)} x_i
+4. Criterio de Parada: Repetir pasos 2 y 3 hasta que los centroides no cambien (g_k^(m) = g_k^(m-1)) o se alcance el máximo de iteraciones.
+
+
+Ventajas y Limitaciones de K-Medias
+
+* Ventajas: Eficiencia computacional O(K \cdot n \cdot p \cdot \text{iter}), aplicable a grandes bases de datos (n > 100,000).
+* Desventajas: Sensible a la selección de centroides iniciales (convergencia a óptimos locales); requiere fijar K a priori; sensible a outliers y propenso a formar grupos esféricos de tamaños homogéneos.
+
+4.5. Estrategia Combinada (Escuela Francesa / Lebart & Díaz Monroy)
+
+Para superar la lentitud del método de Ward en datos masivos y la inestabilidad de K-medias ante óptimos locales, se aplica la estrategia en tres etapas:
+
+[ Tabla de Datos X ]
+        │
+        ▼
+1. Reducción Factorial (ACP / ACM) ──► Filtrado de ruido y selección de S ejes factoriales
+        │
+        ▼
+2. Clasificación Jerárquica (Ward) ──► Cortar árbol según histograma de índices de nivel (elección de K)
+        │
+        ▼
+3. Consolidación por K-Medias ──► Partición inicial tomada de los centroides de Ward; optimización final de I_W
+
+
+1. Paso 1 (Factorial): Ejecutar ACP o ACM y conservar los primeros S ejes factoriales (elimina el ruido aleatorio y trabaja en métrica ortogonal).
+2. Paso 2 (Aglomerativo): Aplicar el Método de Ward sobre las coordenadas factoriales. Inspeccionar el Histograma de Índices de Nivel (saltos bruscos en los incrementos de inercia intraclase al pasar de K a K-1 clases) para elegir el número óptimo de clases K.
+3. Paso 3 (Consolidación): Reubicar elementos mediante K-medias tomando los centros de gravedad de las K clases del corte del árbol como semillas iniciales.
+
+4.6. Métodos Avanzados: Nubes Dinámicas y K-Medias Difuso
+
+Nubes Dinámicas (Diday)
+
+Generaliza K-medias representando cada clase no por un único punto (centroide), sino por un núcleo compuesto L_k (conjunto de puntos, subespacios o elipsoides), minimizando una función de agregación generalizada W(C_k, L_k).
+
+K-Medias Difuso (Fuzzy C-Means - FCM)
+
+Flexibiliza la pertenencia dura (f_{ik} \in \{0, 1\}) permitiendo un grado de pertenencia continuo f_{ik} \in [0, 1] tal que \sum_{k=1}^K f_{ik} = 1. Criterio a minimizar: J_m = \sum_{i=1}^n \sum_{k=1}^K f_{ik}^m \|x_i - \mu_k\|^2, \quad m > 1 \text{ (fuzzificador, habitualmente } m = 2)
+
+* Actualización de Centros: \mu_k = \frac{\sum_{i=1}^n f_{ik}^m x_i}{\sum_{i=1}^n f_{ik}^m}
+* Actualización de Pertenencias: f_{ik} = \frac{1}{\sum_{l=1}^K \left( \frac{\|x_i - \mu_k\|}{\|x_i - \mu_l\|} \right)^{\frac{2}{m-1}}}
+
+5. Implementación R y SAS para Métodos Multivariados
+
+5.1. Código Completo en R (Paquetes FactoClass, ade4, stats)
+
+# ==============================================================================
+# SCRIPT DE ANÁLISIS MULTIVARIADO COMPLETO Y CLASIFICACIÓN COMBINADA EN R
+# ==============================================================================
+library(ade4)
+library(FactoClass)
+library(GPArotation)
+
+# ------------------------------------------------------------------------------
+# 1. ANÁLISIS EN COMPONENTES PRINCIPALES (ACP NORMADO)
+# ------------------------------------------------------------------------------
+data(USArrests)
+acp_res <- dudi.pca(USArrests, scannf = FALSE, nf = 2)
+
+# Resumen de Inercia y Ayudas a la Interpretación
+summary(acp_res)
+ayudas_acp <- inertia.dudi(acp_res, row.inertia = TRUE, col.inertia = TRUE)
+print(ayudas_acp$col.abs) # Contribuciones absolutas de variables
+print(ayudas_acp$row.rel) # Cosenos cuadrados de individuos
+
+# ------------------------------------------------------------------------------
+# 2. ANÁLISIS FACTORIAL (AF - MÁXIMA VEROSIMILITUD Y ROTACIÓN VARIMAX)
+# ------------------------------------------------------------------------------
+af_res <- factanal(USArrests, factors = 2, rotation = "varimax")
+print(af_res, digits = 3)
+
+# ------------------------------------------------------------------------------
+# 3. ANÁLISIS DE CORRESPONDENCIAS SIMPLES (ACS) Y MÚLTIPLES (ACM)
+# ------------------------------------------------------------------------------
+# ACS sobre tabla de contingencia
+data(housetasks) # Paquete factoextra o ade4
+acs_res <- dudi.coa(housetasks, scannf = FALSE, nf = 2)
+plot(acs_res)
+
+# ACM sobre datos categóricos
+data(banque) # Paquete ade4
+acm_res <- dudi.acm(banque[, 1:6], scannf = FALSE, nf = 3)
+barplot(acm_res$eig, main = "Valores Propios ACM")
+
+# ------------------------------------------------------------------------------
+# 4. ESTRATEGIA COMBINADA DE CLASIFICACIÓN (FactoClass: Factorial + Ward + K-medias)
+# ------------------------------------------------------------------------------
+fc_res <- FactoClass(USArrests, dudi = "dudi.pca", scan = FALSE, nf = 2, k = 4)
+
+# Resultados del Agrupamiento Combinado
+table(fc_res$cluster)           # Tamaño de las 4 clases consolidadas
+fc_res$clus.summ               # Inertias antes y después de consolidación
+plot(fc_res)                   # Proyección de clases sobre primer plano factorial
+
+
+5.2. Código Completo en SAS (PROC FACTOR, PROC CORRESP, PROC CLUSTER, PROC FASTCLUS)
+
+/* ==============================================================================
+   CÓDIGO SAS COMPLETO PARA ACP, FACTORIAL, CORRESPONDENCIAS Y CLUSTER
+   ============================================================================== */
+
+/* 1. ACP Y ANÁLISIS FACTORIAL CON ROTACIÓN VARIMAX */
+proc factor data=sashelp.iris
+    method=prin
+    nfactors=2
+    rotate=varimax
+    plots=scree;
+    var SepalLength SepalWidth PetalLength PetalWidth;
+run;
+
+/* 2. ANÁLISIS DE CORRESPONDENCIAS MÚLTIPLES (ACM) */
+proc correspons data=sashelp.cars out=out_acm mca;
+    tables Type Origin DriveTrain;
+run;
+
+/* 3. CLASIFICACIÓN JERÁRQUICA CON MÉTODO DE WARD */
+proc cluster data=sashelp.iris
+    method=ward
+    outtree=tree_ward
+    plots=dendrogram;
+    var SepalLength SepalWidth PetalLength PetalWidth;
+run;
+
+/* CORTAR EL ÁRBOL EN 3 CLASES */
+proc tree data=tree_ward nclusters=3 out=particion_ward;
+    copy SepalLength SepalWidth PetalLength PetalWidth;
+run;
+
+/* 4. CONSOLIDACIÓN POR K-MEDIAS (FASTCLUS) USANDO CENTROS DE WARD */
+proc means data=particion_ward nway noprint;
+    class cluster;
+    var SepalLength SepalWidth PetalLength PetalWidth;
+    output out=semillas mean=;
+run;
+
+proc fastclus data=sashelp.iris
+    seed=semillas
+    maxclusters=3
+    out=clasificacion_final;
+    var SepalLength SepalWidth PetalLength PetalWidth;
+run;
+
